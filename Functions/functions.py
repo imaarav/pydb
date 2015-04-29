@@ -24,7 +24,7 @@ def userSignUp():
         closeDB()
         return
     
-    c.execute("INSERT INTO myData (userNameC, passwordC) VALUES ('userName','password')")
+    c.execute("INSERT INTO myData (userNameC, passwordC) VALUES (?,?)", userName, password)
     closeDB()
     
     print "You've successfully signed up for the App. Please login to continue"
@@ -59,7 +59,7 @@ def userLogIn():
                 
 def authenticatedUser():
     print "\n\n                           Home Screen\n"
-    action = raw_input("Enter 1: Add data to your database OR 2: Retrieve data from your database OR 3: Log Out :- ")
+    action = raw_input("Enter 1: Add data to your database OR 2: Retrieve data from your database OR 3: Update Data OR 4: Log Out :- ")
     
     if action == "1":
         addData()
@@ -67,7 +67,11 @@ def authenticatedUser():
     elif action == "2":
         getData()
     
-    elif action == "3":
+    elif action == "2":
+        updateData()
+    
+    
+    elif action == "4":
         print "\n        You have successfully LOGGED OUT of your account"
         sys.exit(0)
         
@@ -80,7 +84,57 @@ def authenticatedUser():
 def addData():
     firstName = raw_input("Enter your First Name:")
     lastName = raw_input("Enter your Last Name:")
-    #R for blob
+    filePath = raw_input("Enter your Absolute File Path:")
+    theData = open('filePath','rb').read()
+    
+    connectDB()
+    c.execute("INSERT INTO myData (firstNameC, lastNameC, fileC) VALUES (?,?,?)", firstName, lastName, theData)
+    print "\n         The above entry has been ADDED TO YOUR DATABASE.\n"
+    task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
+    if task == "1":
+        updateData()
+    elif task == "2":
+        authenticatedUser()
+    else:
+        print "\n        You have successfully LOGGED OUT of your account"
+        sys.exit(0)
+        
+def updateData():
+    firstName = raw_input("Enter new - First Name:")
+    lastName = raw_input("Enter new - Last Name:")
+    filePath = raw_input("Enter new - Absolute File Path:")
+    theData = open('filePath','rb').read()
+    
+    connectDB()
+    c.execute("UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE userNameC = userName", firstName, lastName, theData)
+    closeDB()
+    
+    print "\n         The above entry has been UPDATED IN THE DATABASE.\n"
+    task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
+    if task == "1":
+        updateData()
+    elif task == "2":
+        authenticatedUser()
+    else:
+        print "\n        You have successfully LOGGED OUT of your account"
+        sys.exit(0)
+    
+def getData():
+    connectDB()
+    row = c.execute("SELECT * FROM myData WHERE userNameC = ?", userName)
+    print row
+    closeDB()
+    task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
+    if task == "1":
+        updateData()
+    elif task == "2":
+        authenticatedUser()
+    else:
+        print "\n        You have successfully LOGGED OUT of your account"
+        sys.exit(0)
+    
+    
+    
     
     
 def connectDB():
