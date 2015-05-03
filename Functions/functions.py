@@ -1,9 +1,10 @@
 import sqlite3
-
+import getpass
+import sys
 
 def userSignUp():
     global userName
-    connectDB()
+    conn, c = connectDB()
     
     userName = raw_input("\n\nEnter the desired Username: ")
     userName = userName.lower()
@@ -13,7 +14,7 @@ def userSignUp():
     for row in rows:
         if row[0] == userName:
             print "This userName has already been chosen; please try some other username"
-            closeDB()
+            closeDB(conn)
             return
         
    
@@ -21,11 +22,12 @@ def userSignUp():
     confirmPassword = getpass.getpass(prompt = "Confirm the App Password: ")
     if password != confirmPassword:
         print "The values of the fields in Password and Confirm password do not match. Please try again"
-        closeDB()
+        closeDB(conn)
         return
     
-    c.execute("INSERT INTO myData (userNameC, passwordC) VALUES (?,?)", userName, password)
-    closeDB()
+    values = [(userName), (password)]
+    c.execute("INSERT INTO myData (userNameC, passwordC) VALUES (?,?)", values)
+    closeDB(conn)
     
     print "You've successfully signed up for the App. Please login to continue"
     userLogIn()
@@ -38,7 +40,7 @@ def userLogIn():
         userName = raw_input("Enter the App Username: ")
         password = getpass.getpass(prompt = "Enter the App Password: ")
         
-        connectDB()
+        conn, c = connectDB()
         
         rows = c.execute("SELECT * FROM myData;")
     
@@ -46,15 +48,15 @@ def userLogIn():
             if row[0] == userName:
                 if row[4] == password:
                     print "You've Successfully Logged In"
-                    closeDB()
+                    closeDB(conn)
                     authenticatedUser()
                 else:
                     print "One or more information is incorrect. Please try logging in again."
-                    closeDB()
+                    closeDB(conn)
                     return
             else:
                 print "One or more information is incorrect. Please try logging in again."
-                closeDB()
+                closeDB(conn)
                 return
                 
 def authenticatedUser():
@@ -85,10 +87,17 @@ def addData():
     firstName = raw_input("Enter your First Name:")
     lastName = raw_input("Enter your Last Name:")
     filePath = raw_input("Enter your Absolute File Path:")
-    theData = open('filePath','rb').read()
+    print filePath
     
-    connectDB()
-    c.execute("INSERT INTO myData (firstNameC, lastNameC, fileC) VALUES (?,?,?)", firstName, lastName, theData)
+    theData = open(filePath,'rb').read()
+    
+    
+    conn, c = connectDB()
+    
+    values = [ (firstName), (lastName), (theData), (userName)]
+    
+    # c.execute("UPDATE INTO myData (firstNameC, lastNameC, fileC) VALUES (?,?,?) WHERE userNameC = ?", values)
+    c.execute("UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE userNameC = ?", values)
     print "\n         The above entry has been ADDED TO YOUR DATABASE.\n"
     task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
     if task == "1":
@@ -105,9 +114,9 @@ def updateData():
     filePath = raw_input("Enter new - Absolute File Path:")
     theData = open('filePath','rb').read()
     
-    connectDB()
+    conn, c = connectDB()
     c.execute("UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE userNameC = userName", firstName, lastName, theData)
-    closeDB()
+    closeDB(conn)
     
     print "\n         The above entry has been UPDATED IN THE DATABASE.\n"
     task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
@@ -120,10 +129,18 @@ def updateData():
         sys.exit(0)
     
 def getData():
-    connectDB()
-    row = c.execute("SELECT * FROM myData WHERE userNameC = ?", userName)
-    print row
-    closeDB()
+    conn, c = connectDB()
+    value = [(userName)]
+    row = c.execute("SELECT * FROM myData WHERE userNameC = (?)", value)
+    row = c.fetchone()
+    
+    print row[0]
+    print row[1]
+    print row[2]
+    print row[3]
+    print row[4]
+    
+    closeDB(conn)
     task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
     if task == "1":
         updateData()
@@ -138,10 +155,12 @@ def getData():
     
     
 def connectDB():
-    global conn = sqlite3.connect('data.db')
-    global c = conn.cursor()
+    conn = sqlite3.connect('data.db')
+    conn.text_factory = str
+    c = conn.cursor()
+    return conn, c
     
     
-def closeDB():
+def closeDB(conn):
     conn.commit()
     conn.close()
