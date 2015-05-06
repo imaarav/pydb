@@ -2,7 +2,7 @@ import sqlite3
 from Functions import functions
 
 conn, c = functions.connectDB()
-c.execute('''CREATE TABLE IF NOT EXISTS myData(userNameC TEXT, firstNameC TEXT, lastNameC TEXT, fileC BLOB, passwordC TEXT, PRIMARY KEY(userNameC))''')
+c.execute('''CREATE TABLE IF NOT EXISTS myData(userNameC TEXT PRIMARY KEY, firstNameC TEXT, lastNameC TEXT, fileC BLOB, passwordC TEXT);''')
 functions.closeDB(conn)
 
 def main():

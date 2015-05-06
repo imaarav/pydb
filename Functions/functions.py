@@ -89,15 +89,22 @@ def addData():
     filePath = raw_input("Enter your Absolute File Path:")
     print filePath
     
-    theData = open(filePath,'rb').read()
-    
+    #theData = open(filePath,'rb').read()
+    theData = 2
     
     conn, c = connectDB()
     
-    values = [ (firstName), (lastName), (theData), (userName)]
+    #values = [ firstName, lastName, theData, userName]
     
     # c.execute("UPDATE INTO myData (firstNameC, lastNameC, fileC) VALUES (?,?,?) WHERE userNameC = ?", values)
-    c.execute("UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE userNameC = ?", values)
+    print "Before"
+    print firstName
+    print lastName
+    print theData
+    
+    c.execute('''UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE userNameC = ?''', (firstName, lastName, theData, "aarav"))
+    closeDB(conn)
+    print "After"
     print "\n         The above entry has been ADDED TO YOUR DATABASE.\n"
     task = raw_input("\nEnter 1: Update Entry OR 2: Home Screen OR (Any Other key): Log Out :- ")
     if task == "1":
