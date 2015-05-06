@@ -60,11 +60,11 @@ def user_log_in():
                     conn.commit()
                     conn.close()
                     return
-            else:
-                print "One or more information is incorrect. Please try logging in again."
-                conn.commit()
-                conn.close()
-                return
+            
+        print "One or more information is incorrect. Please try logging in again."
+        conn.commit()
+        conn.close()
+        return
                 
 def authenticated_user():
     print "\n\n                           Home Screen\n"
@@ -95,12 +95,14 @@ def add_data():
     last_name = raw_input("Enter your Last Name:")
     upld_file = raw_input("Enter your File Path:")
     
-    the_data = open(upld_file,'rb').read()
-    #the_data = 2
+    # the_data = open(upld_file,'rb').read()
+    # the_data = 2
+    with open(upld_file,"rb") as input_file:
+        ablob = input_file.read()
     
     conn, c = connect_DB()
     
-    c.execute('''UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE usernameC = ?''', (first_name, last_name, the_data, username))
+    c.execute('''UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE usernameC = ?''', (first_name, last_name, sqlite3.Binary(ablob), username))
     conn.commit()
     conn.close()
 
@@ -149,8 +151,11 @@ def get_data():
     dnld_path = "C:\Users\khushboo\Desktop\python db\default download"
     dnld_file = os.path.join(dnld_path, row[0])
     
-    output_file = open(dnld_file,'wb')
-    output_file.write(row[3])
+    # output_file = open(dnld_file,'wb')
+    # output_file.write(row[3])
+    
+    with open (dnld_file, "wb") as output_file:
+        output_file.write(row[3])
     
     print "Your file has been saved to the -- Default Download -- folder"
     
@@ -171,6 +176,6 @@ def get_data():
     
 def connect_DB():
     conn = sqlite3.connect('data.db')
-    conn.text_factory = str
+    #conn.text_factory = str
     c = conn.cursor()
     return conn, c
