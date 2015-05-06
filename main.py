@@ -1,18 +1,19 @@
 import sqlite3
 from Functions import functions
 
-conn, c = functions.connectDB()
+conn, c = functions.connect_DB()
 c.execute('''CREATE TABLE IF NOT EXISTS myData(userNameC TEXT PRIMARY KEY, firstNameC TEXT, lastNameC TEXT, fileC BLOB, passwordC TEXT);''')
-functions.closeDB(conn)
+conn.commit()
+conn.close()
 
 def main():
     
     print "\n\n              Welcome to the APP"
     initial = raw_input("Enter 1 to Sign Up OR 2 to Log In: ")
     if initial == "1":
-        functions.userSignUp()
+        functions.user_sign_up()
     elif initial == "2":
-        functions.userLogIn()
+        functions.user_log_in()
     else:
         print "\n Please enter relevant data"
         main()
