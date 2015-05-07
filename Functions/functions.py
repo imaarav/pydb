@@ -2,9 +2,20 @@ import sqlite3
 import getpass
 import sys
 import os
+import Crypto.Hash as Hash
+import base64
+
+from Row import DB_record
+
+def hashed(data_value, salt_value):
+    hasher = Hash.SHA256.new()
+    hasher.update(salt_value + ":" + data_value)
+    data_value = base64.b64encode(hasher.digest())
+    return data_value
 
 def user_sign_up():
     global username
+    global password
     conn, c = connect_DB()
     
     username = raw_input("\n\nEnter the desired Username: ")
@@ -28,8 +39,10 @@ def user_sign_up():
         conn.close()
         return
     
-    values = [(username), (password)]
-    c.execute("INSERT INTO myData (usernameC, passwordC) VALUES (?,?)", values)
+    new_row = DB_record.record(username, "First Name not saved", "Last Name not saved", "No File uploaded yet", password)
+    new_row.encrypt(password)
+    values = [(new_row.username), (new_row.first_name), (new_row.last_name), (new_row.file), (new_row.password), (new_row.IV), (new_row.salt)]
+    c.execute("INSERT INTO myData (usernameC, first_nameC, last_nameC, fileC, passwordC, IVC, saltC) VALUES (?,?,?,?,?,?,?)", values)
     conn.commit()
     conn.close()
     
@@ -46,11 +59,14 @@ def user_log_in():
         
         conn, c = connect_DB()
         
-        rows = c.execute("SELECT * FROM myData;")
+        DB_rows = c.execute("SELECT * FROM myData;")
     
-        for row in rows:
-            if row[0] == username:
-                if row[4] == password:
+        for DB_row in DB_rows:
+            if DB_row[0] == username:
+                global this_row
+                this_row = DB_record.record(DB_row[0], DB_row[1], DB_row[2], DB_row[3], DB_row[4], DB_row[5], DB_row[6])
+                this_row.decrypt(password)
+                if this_row.password == hashed(password, this_row.salt):
                     print "You've Successfully Logged In"
                     conn.commit()
                     conn.close()
@@ -100,9 +116,15 @@ def add_data():
     with open(upld_file,"rb") as input_file:
         ablob = input_file.read()
     
+    this_row.first_name = first_name
+    this_row.last_name = last_name
+    this_row.file = ablob
+    
+    this_row.encrypt(password)
+    
     conn, c = connect_DB()
     
-    c.execute('''UPDATE myData SET firstNameC = ?, lastNameC = ?, fileC = ? WHERE usernameC = ?''', (first_name, last_name, sqlite3.Binary(ablob), username))
+    c.execute('''UPDATE myData SET first_nameC = ?, last_nameC = ?, fileC = ? WHERE usernameC = ?''', (this_row.first_name, this_row.last_name, sqlite3.Binary(this_row.file), this_row.username))
     conn.commit()
     conn.close()
 
@@ -119,11 +141,20 @@ def add_data():
 def update_data():
     first_name = raw_input("Enter new - First Name:")
     last_name = raw_input("Enter new - Last Name:")
-    file_path = raw_input("Enter new - Absolute File Path:")
-    the_data = open('file_path','rb').read()
+    upld_path = raw_input("Enter new - Absolute File Path:")
+    #the_data = open('file_path','rb').read()
+    
+    with open(upld_file,"rb") as input_file:
+        ablob = input_file.read()
+    
+    this_row.first_name = first_name
+    this_row.last_name = last_name
+    this_row.file = ablob
+    
+    this_row.encrypt(password)
     
     conn, c = connect_DB()
-    c.execute("UPDATE myData SET first_nameC = ?, last_nameC = ?, fileC = ? WHERE usernameC = username", first_name, last_name, the_data)
+    c.execute('''UPDATE myData SET first_nameC = ?, last_nameC = ?, fileC = ? WHERE usernameC = ?''', (this_row.first_name, this_row.last_name, sqlite3.Binary(this_row.file), this_row.username))
     conn.commit()
     conn.close()
     
@@ -140,22 +171,23 @@ def update_data():
 def get_data():
     conn, c = connect_DB()
     value = [(username)]
-    row = c.execute("SELECT * FROM myData WHERE usernameC = (?)", value)
-    row = c.fetchone()
+    current_row = c.execute("SELECT * FROM myData WHERE usernameC = (?)", value)
+    current_row = c.fetchone()
+    current_row = DB_record.record(current_row[0], current_row[1], current_row[2], current_row[3], current_row[4], current_row[5], current_row[6])
+    current_row.decrypt(password)
     
-    print row[0]
-    print row[1]
-    print row[2]
-    print row[4]
+    print current_row.username
+    print current_row.first_name
+    print current_row.last_name
     
     dnld_path = "C:\Users\khushboo\Desktop\python db\default download"
-    dnld_file = os.path.join(dnld_path, row[0])
+    dnld_file = os.path.join(dnld_path, current_row.username)
     
     # output_file = open(dnld_file,'wb')
     # output_file.write(row[3])
     
     with open (dnld_file, "wb") as output_file:
-        output_file.write(row[3])
+        output_file.write(current_row.file)
     
     print "Your file has been saved to the -- Default Download -- folder"
     
