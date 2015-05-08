@@ -87,12 +87,12 @@ class record:
         master_password = None
 
 
-    def write(self, filename, target_directory):
-        os.chdir(target_directory)
-        myfile = open(filename,"a")
-        write_string = self.service + " " + self.username + " " + self.password + " " + self.mode + " " + str(self.IV) + " " + self.salt + "\n"
-        myfile.write(write_string)
-        myfile.flush()
-        myfile.close()
-        os.chdir(code_directory)
-        return True
+    # def write(self, filename, target_directory):
+        # os.chdir(target_directory)
+        # myfile = open(filename,"a")
+        # write_string = self.service + " " + self.username + " " + self.password + " " + self.mode + " " + str(self.IV) + " " + self.salt + "\n"
+        # myfile.write(write_string)
+        # myfile.flush()
+        # myfile.close()
+        # os.chdir(code_directory)
+        # return True

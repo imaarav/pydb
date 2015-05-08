@@ -92,7 +92,7 @@ def authenticated_user():
     elif action == "2":
         get_data()
     
-    elif action == "2":
+    elif action == "3":
         update_data()
     
     
@@ -109,12 +109,7 @@ def authenticated_user():
 def add_data():
     first_name = raw_input("Enter your First Name:")
     last_name = raw_input("Enter your Last Name:")
-    upld_file = raw_input("Enter your File Path:")
-    
-    # the_data = open(upld_file,'rb').read()
-    # the_data = 2
-    with open(upld_file,"rb") as input_file:
-        ablob = input_file.read()
+    ablob = get_file()
     
     this_row.first_name = first_name
     this_row.last_name = last_name
@@ -141,11 +136,7 @@ def add_data():
 def update_data():
     first_name = raw_input("Enter new - First Name:")
     last_name = raw_input("Enter new - Last Name:")
-    upld_path = raw_input("Enter new - Absolute File Path:")
-    #the_data = open('file_path','rb').read()
-    
-    with open(upld_file,"rb") as input_file:
-        ablob = input_file.read()
+    ablob = get_file()
     
     this_row.first_name = first_name
     this_row.last_name = last_name
@@ -202,7 +193,24 @@ def get_data():
         print "\n        You have successfully LOGGED OUT of your account"
         sys.exit(0)
     
+def get_file:
+    upld_path = raw_input("Enter new - Absolute File Path:")
+
+    with open(upld_file,"rb") as input_file:
+        a_blob = input_file.read()
     
+    if len(a_blob) > 524000:                      # 65.5 MB = 65500 B = 524000 bits
+        print "The file is too large; it should be less than 65.5 MB. Please try again"
+        value = raw_input("\n Enter 1: try adding an other file OR Enter 2: logout")
+        if value == 1:
+            a_blob = get_file()
+        elif value == 2:
+            sys.exit(0)
+        else:
+            print "\n        You have successfully LOGGED OUT of your account"
+            sys.exit(0)
+        
+    return a_blob
     
     
     
